@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth import get_user_model
 
-from .models import Post, Comment
+from .models import Comment, Post
 
 
 User = get_user_model()
@@ -11,14 +11,7 @@ class PostForm(forms.ModelForm):
 
     class Meta:
         model = Post
-        fields = (
-            'title',
-            'text',
-            'pub_date',
-            'location',
-            'category',
-            'image'
-        )
+        exclude = ('author',)
 
 
 class ProfileForm(forms.ModelForm):
@@ -34,6 +27,16 @@ class ProfileForm(forms.ModelForm):
 
 
 class CommentForm(forms.ModelForm):
+    text = forms.CharField(
+        widget=forms.Textarea(
+            attrs={
+                'cols': 10,
+                'rows': 5,
+                'placeholder': 'Введите ваш комментарий...'
+            }
+        ),
+        label='Текст комментария'
+    )
 
     class Meta:
         model = Comment
