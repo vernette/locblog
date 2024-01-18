@@ -149,11 +149,3 @@ dmypy.json
 media/
 sent_emails/
 static/
-
-# папка с шаблонами
-templates/
-
-
-
-sent_emails/
-
