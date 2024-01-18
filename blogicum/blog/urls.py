@@ -13,12 +13,12 @@ urlpatterns = [
         name='category_posts'
     ),
     path(
-        'profile/<slug:username>/',
+        'profile/<str:username>/',
         views.profile,
         name='profile'
     ),
     path(
-        'profile/<slug:username>/edit/',
+        'profile/edit/',
         views.edit_profile,
         name='edit_profile'
     ),
