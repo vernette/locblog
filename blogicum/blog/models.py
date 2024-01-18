@@ -1,5 +1,9 @@
 from django.db import models
+
 from django.contrib.auth import get_user_model
+
+
+CLASS_STRING_LIMIT = 30
 
 User = get_user_model()
 
@@ -20,52 +24,6 @@ class BaseModel(models.Model):
         abstract = True
 
 
-class Post(BaseModel):
-    title = models.CharField(max_length=256, verbose_name='Заголовок')
-    text = models.TextField(verbose_name='Текст')
-    pub_date = models.DateTimeField(
-        verbose_name='Дата и время публикации',
-        help_text=(
-            'Если установить дату и время в будущем — можно делать'
-            ' отложенные публикации.'
-        ),
-    )
-
-    author = models.ForeignKey(
-        User, on_delete=models.CASCADE, verbose_name='Автор публикации'
-    )
-
-    location = models.ForeignKey(
-        to='Location',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        verbose_name='Местоположение',
-    )
-
-    category = models.ForeignKey(
-        to='Category',
-        on_delete=models.SET_NULL,
-        null=True,
-        verbose_name='Категория',
-        related_name='posts'
-    )
-
-    image = models.ImageField(
-        'Изображение',
-        upload_to='post_images',
-        blank=True
-    )
-
-    class Meta:
-        verbose_name = 'публикация'
-        verbose_name_plural = 'Публикации'
-        ordering = ['-pub_date']
-
-    def __str__(self):
-        return self.title
-
-
 class Category(BaseModel):
     title = models.CharField(max_length=256, verbose_name='Заголовок')
     description = models.TextField(verbose_name='Описание')
@@ -83,7 +41,7 @@ class Category(BaseModel):
         verbose_name_plural = 'Категории'
 
     def __str__(self):
-        return self.title
+        return self.title[:CLASS_STRING_LIMIT]
 
 
 class Location(BaseModel):
@@ -94,7 +52,55 @@ class Location(BaseModel):
         verbose_name_plural = 'Местоположения'
 
     def __str__(self):
-        return self.name
+        return self.name[:CLASS_STRING_LIMIT]
+
+
+class Post(BaseModel):
+    title = models.CharField(max_length=256, verbose_name='Заголовок')
+    text = models.TextField(verbose_name='Текст')
+    pub_date = models.DateTimeField(
+        verbose_name='Дата и время публикации',
+        help_text=(
+            'Если установить дату и время в будущем — можно делать'
+            ' отложенные публикации.'
+        ),
+    )
+
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Автор публикации',
+    )
+
+    location = models.ForeignKey(
+        Location,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name='Местоположение',
+    )
+
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
+        verbose_name='Категория',
+    )
+
+    image = models.ImageField(
+        verbose_name='Изображение',
+        upload_to='post_images',
+        blank=True
+    )
+
+    class Meta:
+        default_related_name = 'posts'
+        verbose_name = 'публикация'
+        verbose_name_plural = 'Публикации'
+        ordering = ['-pub_date']
+
+    def __str__(self):
+        return self.title[:CLASS_STRING_LIMIT]
 
 
 class Comment(BaseModel):
@@ -103,19 +109,20 @@ class Comment(BaseModel):
         Post,
         verbose_name='Пост',
         on_delete=models.CASCADE,
-        related_name='comments'
     )
 
     author = models.ForeignKey(
         User,
         verbose_name='Автор',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
     )
 
     class Meta:
+        default_related_name = 'comments'
         verbose_name = 'комментарий'
         verbose_name_plural = 'Комментарии'
         ordering = ['created_at']
 
     def __str__(self):
-        return self.text
+        return (f'{self.author} написал в посте {self.post.title}: '
+                f'{self.text}')[:CLASS_STRING_LIMIT]
