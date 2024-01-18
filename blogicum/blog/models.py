@@ -1,7 +1,5 @@
-from django.db import models
-
 from django.contrib.auth import get_user_model
-
+from django.db import models
 
 CLASS_STRING_LIMIT = 30
 

@@ -1,14 +1,14 @@
-from django.utils import timezone
+from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.db.models import Count, QuerySet
-from django.contrib.auth import get_user_model
-from django.core.exceptions import PermissionDenied
-from django.http import HttpResponseRedirect, Http404
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, get_object_or_404, redirect
+from django.http import Http404, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
-from .models import Post, Category, Comment
-from .forms import PostForm, ProfileForm, CommentForm
+from .forms import CommentForm, PostForm, ProfileForm
+from .models import Category, Comment, Post
 
 
 def filter_posts(post_objects: QuerySet) -> QuerySet:
