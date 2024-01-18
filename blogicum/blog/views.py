@@ -1,10 +1,9 @@
 from django.utils import timezone
-from django.db.models import Count
-from django.db.models import QuerySet
 from django.core.paginator import Paginator
+from django.db.models import Count, QuerySet
 from django.contrib.auth import get_user_model
-from django.http import HttpResponseRedirect, Http404
 from django.core.exceptions import PermissionDenied
+from django.http import HttpResponseRedirect, Http404
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 
@@ -40,7 +39,7 @@ def index(request):
         template_name='blog/index.html',
         context={
             'page_obj': paginate_data(request, posts),
-        }
+        },
     )
 
 
@@ -48,14 +47,13 @@ def post_detail(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     post_category = post.category
 
-    if not post.is_published and post.author != request.user:
-        raise Http404()
-
-    if post.pub_date > timezone.now() and post.author != request.user:
-        raise Http404()
-
-    if not post_category.is_published and post.author != request.user:
-        raise Http404()
+    if (
+        not post.is_published
+        or post.pub_date > timezone.now()
+        or not post_category.is_published
+    ):
+        if post.author != request.user:
+            raise Http404()
 
     if request.method == 'GET':
         form = CommentForm()
@@ -88,15 +86,15 @@ def category_posts(request, category_slug):
         )
     )
 
-    context = {
-        'category': category,
-        'page_obj': paginate_data(request, posts_by_category),
-    }
-
     return render(
         request,
         template_name='blog/category.html',
-        context=context
+        context={
+            'category': category,
+            'page_obj': paginate_data(
+                request, posts_by_category
+            ),
+        }
     )
 
 
@@ -116,18 +114,16 @@ def profile(request, username):
             comment_count=Count('comments')
         )
 
-    context = {
-        'profile': user,
-        'page_obj': paginate_data(
-            request,
-            user_posts
-        )
-    }
-
     return render(
         request,
         template_name='blog/profile.html',
-        context=context
+        context={
+            'profile': user,
+            'page_obj': paginate_data(
+                request,
+                user_posts
+            )
+        }
     )
 
 
@@ -153,7 +149,14 @@ def post_create_or_edit(request, post_id=None):
     else:
         form = PostForm(instance=post)
 
-    return render(request, 'blog/create.html', {'form': form, 'post': post})
+    return render(
+        request,
+        template_name='blog/create.html',
+        context={
+            'form': form,
+            'post': post
+        }
+    )
 
 
 def post_delete(request, post_id):
@@ -168,7 +171,13 @@ def post_delete(request, post_id):
         post.delete()
         return redirect('blog:profile', username=request.user.username)
 
-    return render(request, 'blog/create.html', {'form': form})
+    return render(
+        request,
+        template_name='blog/create.html',
+        context={
+            'form': form
+        }
+    )
 
 
 @login_required
@@ -181,15 +190,15 @@ def edit_profile(request, username):
 
     form = ProfileForm(request.POST or None, instance=user)
 
-    context = {'form': form}
-
     if form.is_valid():
         form.save()
 
     return render(
         request,
         template_name='blog/user.html',
-        context=context
+        context={
+            'form': form
+        }
     )
 
 
@@ -199,14 +208,22 @@ def add_comment(request, post_id):
 
     if request.method == 'POST':
         form = CommentForm(request.POST)
+
         if form.is_valid():
             comment = form.save(commit=False)
             comment.author = request.user
             comment.post = post
             comment.save()
-            return redirect('blog:post_detail', post_id=post_id)
 
-    return redirect('blog:post_detail', post_id=post_id)
+            return redirect(
+                to='blog:post_detail',
+                post_id=post_id
+            )
+
+    return redirect(
+        to='blog:post_detail',
+        post_id=post_id
+    )
 
 
 @login_required()
@@ -226,8 +243,15 @@ def edit_comment(request, post_id, comment_id):
     else:
         form = CommentForm(instance=comment)
 
-    return render(request, 'blog/comment.html',
-                  {'form': form, 'post': post, 'comment': comment})
+    return render(
+        request,
+        template_name='blog/comment.html',
+        context={
+            'form': form,
+            'post': post,
+            'comment': comment
+        }
+    )
 
 
 @login_required()
@@ -242,5 +266,11 @@ def delete_comment(request, post_id, comment_id):
         comment.delete()
         return redirect('blog:post_detail', post_id=post_id)
 
-    return render(request, 'blog/comment.html',
-                  {'post': post, 'comment': comment})
+    return render(
+        request,
+        template_name='blog/comment.html',
+        context={
+            'post': post,
+            'comment': comment
+        }
+    )
