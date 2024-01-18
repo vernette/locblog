@@ -51,7 +51,11 @@ class Post(BaseModel):
         related_name='posts'
     )
 
-    image = models.ImageField('Изображение', upload_to='post_images', blank=True)
+    image = models.ImageField(
+        'Изображение',
+        upload_to='post_images',
+        blank=True
+    )
 
     class Meta:
         verbose_name = 'публикация'

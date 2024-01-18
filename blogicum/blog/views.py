@@ -29,7 +29,11 @@ def paginate_data(request, data, items_per_page=10):
 
 
 def index(request):
-    posts = filter_posts(Post.objects.annotate(comment_count=Count('comments')))
+    posts = filter_posts(
+        Post.objects.annotate(
+            comment_count=Count('comments')
+        )
+    )
 
     return render(
         request,
@@ -78,7 +82,11 @@ def category_posts(request, category_slug):
         is_published=True
     )
 
-    posts_by_category = filter_posts(category.posts.annotate(comment_count=Count('comments')))
+    posts_by_category = filter_posts(
+        category.posts.annotate(
+            comment_count=Count('comments')
+        )
+    )
 
     context = {
         'category': category,
@@ -97,17 +105,23 @@ def profile(request, username):
     user = get_object_or_404(User, username=username)
 
     if request.user == user:
-        # Если текущий пользователь - автор профиля, отображаем все посты (включая отложенные)
-        user_posts = user.post_set.annotate(comment_count=Count('comments'))
+        user_posts = user.post_set.annotate(
+            comment_count=Count('comments')
+        )
     else:
-        # Если текущий пользователь не является автором профиля, отображаем опубликованные посты
-        user_posts = user.post_set.filter(is_published=True,
-                                          pub_date__lte=timezone.now()).annotate(
-            comment_count=Count('comments'))
+        user_posts = user.post_set.filter(
+            is_published=True,
+            pub_date__lte=timezone.now()
+        ).annotate(
+            comment_count=Count('comments')
+        )
 
     context = {
         'profile': user,
-        'page_obj': paginate_data(request, user_posts)
+        'page_obj': paginate_data(
+            request,
+            user_posts
+        )
     }
 
     return render(
