@@ -11,15 +11,10 @@ def filter_posts(
 ) -> QuerySet:
     filters = {}
 
-    if author:
-        filters['author'] = author
-    else:
+    if not author:
         filters['is_published'] = True
         filters['category__is_published'] = True
         filters['pub_date__lte'] = get_current_date()
-
-    if location:
-        filters['location'] = location
 
     return post_objects.select_related('category', 'author',
                                        'location').filter(**filters)
