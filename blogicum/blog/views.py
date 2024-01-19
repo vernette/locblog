@@ -1,23 +1,13 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.core.paginator import Paginator
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import CommentForm, PostForm, ProfileForm
 from .models import Category, Comment, Post
-from .utils import annotate_comment_count, filter_posts, get_current_date
-
-ITEMS_PER_PAGE = 10
-
-
-def paginate_data(request, data, items_per_page=ITEMS_PER_PAGE):
-    ordered_data = data.order_by('-pub_date')
-    paginator = Paginator(ordered_data, items_per_page)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    return page_obj
+from .utils import (annotate_comment_count, filter_posts, get_current_date,
+                    paginate_data)
 
 
 def index(request):
@@ -39,15 +29,17 @@ def post_detail(request, post_id):
     post_category = post.category
 
     if (
-        not post.is_published
-        or post.pub_date > get_current_date()
-        or not post_category.is_published
+            (
+                not post.is_published
+                or post.pub_date > get_current_date()
+                or not post_category.is_published
+            )
+            and post.author != request.user
     ):
-        if post.author != request.user:
-            raise Http404()
+        raise Http404()
 
     form = CommentForm()
-    comments = post.comments.select_related('author', 'post').all()
+    comments = post.comments.select_related('author').all()
 
     return render(
         request,
@@ -91,8 +83,7 @@ def profile(request, username):
 
     user_posts = filter_posts(
         annotate_comment_count(user.posts),
-        author=author,
-        location=None
+        author=author
     )
 
     return render(
@@ -111,15 +102,12 @@ def profile(request, username):
 @login_required
 def post_create_or_edit(request, post_id=None):
     post = None
-
     if post_id:
         post = get_object_or_404(Post, id=post_id)
-
         if request.user != post.author:
             return redirect('blog:post_detail', post_id=post_id)
 
     form = PostForm(request.POST or None, request.FILES or None, instance=post)
-
     if form.is_valid():
         post = form.save(commit=False)
         post.author = request.user
@@ -127,7 +115,6 @@ def post_create_or_edit(request, post_id=None):
 
         if post_id:
             return redirect('blog:post_detail', post_id=post_id)
-
         return redirect('blog:profile', username=request.user.username)
 
     return render(
