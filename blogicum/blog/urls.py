@@ -12,14 +12,14 @@ urlpatterns = [
         name='category_posts'
     ),
     path(
-        'profile/<str:username>/',
-        views.profile,
-        name='profile'
-    ),
-    path(
         'profile/edit/',
         views.edit_profile,
         name='edit_profile'
+    ),
+    path(
+        'profile/<str:username>/',
+        views.profile,
+        name='profile'
     ),
     path(
         'posts/<int:post_id>/',
