@@ -122,5 +122,5 @@ class Comment(BaseModel):
         ordering = ['created_at']
 
     def __str__(self):
-        return (f'{self.author} написал в посте {self.post.title}: '
-                f'{self.text}')[:CLASS_STRING_LIMIT]
+        return (f'{self.author} написал в посте {self.post}: '
+                f'{self.text[:CLASS_STRING_LIMIT]}')
