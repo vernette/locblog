@@ -29,13 +29,13 @@ pip install -r requirements.txt
 Выполните миграции:
 
 ```bash
-python manage.py migrate
+python locblog/manage.py migrate
 ```
 
 Запустите проект:
 
 ```bash
-python manage.py runserver
+python locblog/manage.py runserver
 ```
 
 ## Возможности проекта
