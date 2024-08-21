@@ -33,7 +33,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'blogicum.urls'
+ROOT_URLCONF = 'locblog.urls'
 
 TEMPLATES_DIR = BASE_DIR / 'templates'
 
@@ -53,7 +53,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'blogicum.wsgi.application'
+WSGI_APPLICATION = 'locblog.wsgi.application'
 
 DATABASES = {
     'default': {
